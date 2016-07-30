@@ -11,6 +11,7 @@
   "dependencies": {
     "node-gyp": "latest",
     "sensortag": "latest",
-    "socket.io": "^1.4.8"
+    "socket.io": "^1.4.8",
+    "ws": "^1.1.1"
   }
 }

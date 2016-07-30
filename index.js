@@ -26,17 +26,20 @@
 
 var SensorTag = require('sensortag');		// sensortag library
 
-var server = require('http').createServer();
-var io = require('socket.io')(server);
-server.listen(8001);
+var WebSocketServer = require('ws').Server
+var wss             = new WebSocketServer({ port: 8080 });
 
-var connections = []
+wss.broadcast = function broadcast(data) {
+  wss.clients.forEach(function each(client) {
+    client.send(data);
+  });
+};
 
-io.on('connection', function(socket) {
-  console.log('New connection!');
-  console.log(socket);
-  connections.push(socket);
-})
+wss.on('connection', function connection(ws) {
+  console.log('connection!')
+  // you might use location.query.access_token to authenticate or share sessions
+  // or ws.upgradeReq.headers.cookie (see http://stackoverflow.com/a/16395220/151312)
+});
 
 // listen for tags:
 SensorTag.discover(function(tag) {
@@ -69,9 +72,7 @@ SensorTag.discover(function(tag) {
       console.log('\ty = %d G', y.toFixed(1));
       console.log('\tz = %d G', z.toFixed(1));
       console.log('\tmodulus = %d G', Math.sqrt(Math.pow(z, 2) + Math.pow(x, 2) + Math.pow(y, 2)));
-      connections.forEach(function(connection, i) {
-        connection.emit('news', { x: x, y: y, z: z});
-      })
+      wss.broadcast(JSON.stringify({ x: x, y: y, z: z}));
     });
   }
 
